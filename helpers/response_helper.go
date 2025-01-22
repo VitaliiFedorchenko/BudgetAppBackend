@@ -10,6 +10,7 @@ type Response struct {
 }
 
 func NewResponse(w http.ResponseWriter) *Response {
+	w.Header().Set("Content-Type", "application/json")
 	return &Response{w: w}
 }
 
