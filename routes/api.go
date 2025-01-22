@@ -9,7 +9,7 @@ func SetupRoutes() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Register each route with its specific handler
-	mux.HandleFunc("/users", controllers.ListUsers) // GET
+	mux.HandleFunc("/user/create", controllers.CreateUser) // POST
 
 	return mux
 }
