@@ -9,5 +9,6 @@
 1. Start the application using Docker Compose:
 
     ```sh
+    docker-compose build
     docker-compose up
     ```
