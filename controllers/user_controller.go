@@ -4,15 +4,19 @@ import (
 	"BudgetApp/auth"
 	"BudgetApp/helpers"
 	"BudgetApp/models"
+	"BudgetApp/validation"
 	"encoding/json"
+	"github.com/go-playground/validator/v10"
 	"log"
 	"net/http"
 	"strings"
 )
 
+var validate = validator.New()
+
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		helpers.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -21,20 +25,29 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	var user models.User
-	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	var req validation.CreateUserRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user.Password, err = helpers.HashPassword(user.Password)
+	// Validate the request body
+	if err := validate.Struct(req); err != nil {
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+
+	user.Password, err = helpers.HashPassword(req.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if err := db.Create(&user).Error; err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
 	authToken, err := auth.GenerateToken(user)
@@ -44,7 +57,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func GetMe(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		helpers.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
