@@ -16,4 +16,4 @@ RUN go mod download
 
 COPY . .
 
-CMD ["air"]
+CMD ["air", "-buildvcs=false"]
