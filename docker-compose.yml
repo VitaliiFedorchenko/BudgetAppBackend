@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      dockerfile: Dockerfile
+      context: ./
+    volumes:
+      - ./:/app
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: "sqlite:///data/sqlite.db"
+
+  sqlite:
+    image: alpine
+    container_name: sqlite
+    platform: linux/arm64
+    volumes:
+      - sqlite-data:/data
+    command: /bin/sh -c "apk add sqlite && tail -f /dev/null"
+volumes:
+  sqlite-data:
