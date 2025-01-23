@@ -41,6 +41,8 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user models.User
 
 	user.Password, err = helpers.HashPassword(req.Password)
+	user.Email = req.Email
+	user.Name = req.Name
 	if err != nil {
 		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
@@ -72,4 +74,40 @@ func GetMe(w http.ResponseWriter, r *http.Request) {
 	user, _ := auth.ValidateToken(tokenString)
 
 	helpers.NewResponse(w).ResponseJSON(user)
+}
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		helpers.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
+	}
+
+	db, err := helpers.ConnectToSQLite()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var req validation.LoginUserRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Validate the request body
+	if err := validate.Struct(req); err != nil {
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var user models.User
+	if err := db.Where("email = ?", req.Email).First(&user).Error; err != nil {
+		helpers.NewResponse(w).ResponseJSON("There is no user with such email", http.StatusNotFound)
+	}
+
+	//if helpers.CheckPassword(req.Password, user.Password) {
+	authToken, _ := auth.GenerateToken(user)
+	helpers.NewResponse(w).ResponseJSON(map[string]any{"user": user, "token": authToken})
+	//} else {
+	//	helpers.NewResponse(w).ResponseJSON("Wrong password", http.StatusBadRequest)
+	//}
 }
