@@ -11,11 +11,14 @@ services:
       DATABASE_URL: "sqlite:///data/sqlite.db"
 
   sqlite:
-    image: alpine
+    image: hibitdev/sqlite:latest
     container_name: sqlite
-    platform: linux/arm64
+    hostname: sqlite.hibit
+    ports:
+      - "8191:8191"
     volumes:
-      - sqlite-data:/data
-    command: /bin/sh -c "apk add sqlite && tail -f /dev/null"
+      - ./sqlite:/db
+    command: [ "tail", "-f", "/dev/null" ]
+
 volumes:
   sqlite-data:
