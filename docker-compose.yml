@@ -18,7 +18,4 @@ services:
       - "8191:8191"
     volumes:
       - ./sqlite:/db
-    command: [ "tail", "-f", "/dev/null" ]
-
-volumes:
-  sqlite-data:
+    command: [ "sh", "-c", "sqlite3 /db/sqlite.db '.databases' && tail -f /dev/null" ]
