@@ -13,5 +13,7 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/user/login", controllers.Login)       // POST
 	mux.HandleFunc("/user/me", controllers.GetMe)          // GET
 
+	//Transaction group
+	mux.HandleFunc("/create-transaction", controllers.CreateTransaction) // POST
 	return mux
 }

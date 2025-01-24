@@ -17,4 +17,8 @@ func AutoMigrate() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = db.AutoMigrate(&models.Transaction{})
+	if err != nil {
+		log.Fatal(err)
+	}
 }
