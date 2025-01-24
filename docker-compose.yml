@@ -11,11 +11,15 @@ services:
       DATABASE_URL: "sqlite:///data/sqlite.db"
 
   sqlite:
-    image: hibitdev/sqlite:latest
-    container_name: sqlite
-    hostname: sqlite.hibit
-    ports:
-      - "8191:8191"
-    volumes:
-      - ./sqlite:/db
-    command: [ "sh", "-c", "sqlite3 /db/sqlite.db '.databases' && tail -f /dev/null" ]
+      image: hibitdev/sqlite:latest
+      container_name: sqlite
+      hostname: sqlite.hibit
+      ports:
+        - "8191:8191"
+      volumes:
+        - .:/db
+      env_file:
+        - .env
+      command: >
+        sh -c "sqlite3 /db/${DB_NAME} '.databases' &&
+               tail -f /dev/null"
