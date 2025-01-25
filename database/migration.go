@@ -7,7 +7,7 @@ import (
 )
 
 func AutoMigrate() {
-	db, err := configs.ConnectToSQLite()
+	db, err := configs.ConnectToMySQL()
 	if err != nil {
 		log.Fatal(err)
 	}

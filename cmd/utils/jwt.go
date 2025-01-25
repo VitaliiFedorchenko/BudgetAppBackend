@@ -64,7 +64,7 @@ func ValidateToken(tokenString string) (*models.User, error) {
 	if !token.Valid {
 		return nil, jwt.ErrInvalidKey
 	}
-	db, err := configs.ConnectToSQLite()
+	db, err := configs.ConnectToMySQL()
 
 	var user models.User
 
