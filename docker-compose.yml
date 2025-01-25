@@ -8,18 +8,27 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: "sqlite:///data/sqlite.db"
+      DATABASE_URL: "mysql://root:${MYSQL_ROOT_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      - mysql
 
-  sqlite:
-      image: hibitdev/sqlite:latest
-      container_name: sqlite
-      hostname: sqlite.hibit
-      ports:
-        - "8191:8191"
-      volumes:
-        - .:/db
-      env_file:
-        - .env
-      command: >
-        sh -c "sqlite3 /db/${DB_NAME} '.databases' &&
-               tail -f /dev/null"
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    hostname: mysql
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    env_file:
+      - .env
+
+volumes:
+  mysql_data:
