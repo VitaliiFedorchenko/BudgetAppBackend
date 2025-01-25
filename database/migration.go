@@ -11,10 +11,11 @@ func AutoMigrate() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	//defer db.Close()
-
-	err = db.AutoMigrate(&models.User{})
-	if err != nil {
+	
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+		log.Fatal(err)
+	}
+	if err := db.AutoMigrate(&models.Wallet{}); err != nil {
 		log.Fatal(err)
 	}
 }

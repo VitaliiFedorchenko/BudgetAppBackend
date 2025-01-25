@@ -4,7 +4,9 @@ import (
 	"BudgetApp/internal/configs"
 	"BudgetApp/models"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -71,4 +73,16 @@ func ValidateToken(tokenString string) (*models.User, error) {
 	db.First(&user, "id = ?", claims.UserID)
 
 	return &user, err
+}
+
+func GetUserFromAuthToken(r *http.Request) (*models.User, error) {
+	// Get a specific header
+	authHeader := r.Header.Get("Authorization")
+
+	// If you're specifically looking for the JWT token from Authorization header
+	// It's typically sent as "Bearer <token>"
+	authHeader = r.Header.Get("Authorization")
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+	return ValidateToken(tokenString)
 }
