@@ -1,13 +1,13 @@
 package database
 
 import (
-	"BudgetApp/helpers"
+	"BudgetApp/internal/configs"
 	"BudgetApp/models"
 	"log"
 )
 
 func AutoMigrate() {
-	db, err := helpers.ConnectToSQLite()
+	db, err := configs.ConnectToSQLite()
 	if err != nil {
 		log.Fatal(err)
 	}

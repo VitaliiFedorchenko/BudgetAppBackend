@@ -1,7 +1,7 @@
-package auth
+package utils
 
 import (
-	"BudgetApp/helpers"
+	"BudgetApp/internal/configs"
 	"BudgetApp/models"
 	"github.com/golang-jwt/jwt/v5"
 	"os"
@@ -45,7 +45,7 @@ func GenerateToken(user models.User) (string, error) {
 		return "", err
 	}
 
-	return tokenString, err
+	return tokenString, err // Return the token string
 }
 
 // ValidateToken verifies and parses the JWT token
@@ -64,7 +64,7 @@ func ValidateToken(tokenString string) (*models.User, error) {
 	if !token.Valid {
 		return nil, jwt.ErrInvalidKey
 	}
-	db, err := helpers.ConnectToSQLite()
+	db, err := configs.ConnectToSQLite()
 
 	var user models.User
 
