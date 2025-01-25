@@ -2,27 +2,39 @@ package controllers
 
 import (
 	"BudgetApp/helpers"
-	"BudgetApp/models"
+	"BudgetApp/services"
 	"BudgetApp/validation"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 )
 
-func CreateTransaction(w http.ResponseWriter, r *http.Request) {
+type TransactionController struct {
+	transactionService *services.TransactionService
+}
+
+func SetupTransactionController() *TransactionController {
+	transactionService := services.NewTransactionService()
+	return NewTransactionController(transactionService)
+}
+
+func NewTransactionController(transactionService *services.TransactionService) *TransactionController {
+	return &TransactionController{transactionService: transactionService}
+}
+
+type TransactionResponse struct {
+	ID       uint    `json:"id"`
+	Category string  `json:"category"`
+	Sum      float64 `json:"sum"`
+}
+
+func (c *TransactionController) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		helpers.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	db, err := helpers.ConnectToSQLite()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	var req validation.CreateTransactionRequest
-
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
@@ -34,51 +46,29 @@ func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var transaction models.Transaction
-
-	transaction.Category = req.Category
-	transaction.Sum = int64(*req.Sum * 100)
-
-	if err := db.Create(&transaction).Error; err != nil {
+	transaction, err := c.transactionService.CreateTransaction(&req)
+	if err != nil {
 		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	helpers.NewResponse(w).ResponseJSON(transaction, http.StatusCreated)
+	response := TransactionResponse{
+		ID:       transaction.ID,
+		Category: transaction.Category,
+		Sum:      transaction.GetSum(),
+	}
+
+	helpers.NewResponse(w).ResponseJSON(response, http.StatusCreated)
 }
 
-func ListTransactions(w http.ResponseWriter, r *http.Request) {
+func (c *TransactionController) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 
-	var transactions []models.Transaction
-	var totalCount int64
-
-	db, err := helpers.ConnectToSQLite()
-
-	// Count total transactions
-	if err := db.Model(&models.Transaction{}).Count(&totalCount).Error; err != nil {
-		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
-	}
-
-	// Calculate offset
-	offset := (page - 1) * limit
-
-	// Fetch paginated transactions
-	err = db.Order("created_at DESC").
-		Limit(limit).
-		Offset(offset).
-		Find(&transactions).Error
-
+	response, err := c.transactionService.ListTransactions(page, limit)
 	if err != nil {
 		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
-	}
-
-	response := map[string]interface{}{
-		"transactions": transactions,
-		"page":         page,
-		"limit":        limit,
-		"total":        totalCount,
+		return
 	}
 
 	helpers.NewResponse(w).ResponseJSON(response, http.StatusOK)
