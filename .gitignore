@@ -1,3 +1,5 @@
 .env
 /.idea
 BudgetApp
+tmp
+vendor

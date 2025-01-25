@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func CreateTransaction(w http.ResponseWriter, r *http.Request) {
@@ -44,4 +45,41 @@ func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.NewResponse(w).ResponseJSON(transaction, http.StatusCreated)
+}
+
+func ListTransactions(w http.ResponseWriter, r *http.Request) {
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+
+	var transactions []models.Transaction
+	var totalCount int64
+
+	db, err := helpers.ConnectToSQLite()
+
+	// Count total transactions
+	if err := db.Model(&models.Transaction{}).Count(&totalCount).Error; err != nil {
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
+	}
+
+	// Calculate offset
+	offset := (page - 1) * limit
+
+	// Fetch paginated transactions
+	err = db.Order("created_at DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&transactions).Error
+
+	if err != nil {
+		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
+	}
+
+	response := map[string]interface{}{
+		"transactions": transactions,
+		"page":         page,
+		"limit":        limit,
+		"total":        totalCount,
+	}
+
+	helpers.NewResponse(w).ResponseJSON(response, http.StatusOK)
 }

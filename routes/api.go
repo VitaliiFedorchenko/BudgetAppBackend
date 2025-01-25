@@ -15,5 +15,6 @@ func SetupRoutes() *http.ServeMux {
 
 	//Transaction group
 	mux.HandleFunc("/create-transaction", controllers.CreateTransaction) // POST
+	mux.HandleFunc("/transactions", controllers.ListTransactions)        // GET
 	return mux
 }
