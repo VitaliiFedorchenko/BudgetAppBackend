@@ -32,7 +32,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := configs.ConnectToMySQL()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 	}
 
-	db, err := configs.ConnectToMySQL()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
