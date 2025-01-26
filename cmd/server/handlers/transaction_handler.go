@@ -1,9 +1,10 @@
-package controllers
+package handlers
 
 import (
-	"BudgetApp/helpers"
-	"BudgetApp/services"
-	"BudgetApp/validation"
+	"BudgetApp/cmd/server/validation"
+	"BudgetApp/internal/enums"
+	"BudgetApp/internal/services"
+	"BudgetApp/internal/utils"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -23,32 +24,32 @@ func NewTransactionController(transactionService *services.TransactionService) *
 }
 
 type TransactionResponse struct {
-	ID       uint    `json:"id"`
-	Category string  `json:"category"`
-	Sum      float64 `json:"sum"`
+	ID       uint                      `json:"id"`
+	Category enums.TransactionCategory `json:"category"`
+	Sum      float64                   `json:"sum"`
 }
 
 func (c *TransactionController) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		helpers.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
+		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var req validation.CreateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Validate the request body
 	if err := validate.Struct(req); err != nil {
-		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	transaction, err := c.transactionService.CreateTransaction(&req)
 	if err != nil {
-		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -58,7 +59,7 @@ func (c *TransactionController) CreateTransaction(w http.ResponseWriter, r *http
 		Sum:      transaction.GetSum(),
 	}
 
-	helpers.NewResponse(w).ResponseJSON(response, http.StatusCreated)
+	utils.NewResponse(w).ResponseJSON(response, http.StatusCreated)
 }
 
 func (c *TransactionController) ListTransactions(w http.ResponseWriter, r *http.Request) {
@@ -67,9 +68,9 @@ func (c *TransactionController) ListTransactions(w http.ResponseWriter, r *http.
 
 	response, err := c.transactionService.ListTransactions(page, limit)
 	if err != nil {
-		helpers.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	helpers.NewResponse(w).ResponseJSON(response, http.StatusOK)
+	utils.NewResponse(w).ResponseJSON(response, http.StatusOK)
 }

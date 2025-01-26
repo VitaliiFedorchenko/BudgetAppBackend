@@ -1,9 +1,9 @@
 package services
 
 import (
-	"BudgetApp/helpers"
+	"BudgetApp/cmd/server/validation"
+	"BudgetApp/internal/configs"
 	"BudgetApp/models"
-	"BudgetApp/validation"
 	"gorm.io/gorm"
 	"log"
 )
@@ -13,7 +13,7 @@ type TransactionService struct {
 }
 
 func NewTransactionService() *TransactionService {
-	db, err := helpers.ConnectToSQLite()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,8 +24,11 @@ func NewTransactionService() *TransactionService {
 func (s *TransactionService) CreateTransaction(req *validation.CreateTransactionRequest) (*models.Transaction, error) {
 	transaction := &models.Transaction{
 		Category: req.Category,
-		Sum:      int64(*req.Sum * 100),
+		Sum:      0,
+		WalletID: req.WalletID,
 	}
+
+	transaction.Sum = transaction.SetSum(*req.Sum)
 
 	if err := s.db.Create(transaction).Error; err != nil {
 		return nil, err
@@ -38,10 +41,8 @@ func (s *TransactionService) ListTransactions(page int, limit int) (map[string]i
 	var transactions []models.Transaction
 	var totalCount int64
 
-	db, err := helpers.ConnectToSQLite()
-
 	// Count total transactions
-	if err := db.Model(&models.Transaction{}).Count(&totalCount).Error; err != nil {
+	if err := s.db.Model(&models.Transaction{}).Count(&totalCount).Error; err != nil {
 		return nil, err
 	}
 
@@ -49,7 +50,9 @@ func (s *TransactionService) ListTransactions(page int, limit int) (map[string]i
 	offset := (page - 1) * limit
 
 	// Fetch paginated transactions
-	err = db.Order("created_at DESC").
+	err := s.db.Preload("Wallet").
+		Preload("Wallet.User").
+		Order("created_at DESC").
 		Limit(limit).
 		Offset(offset).
 		Find(&transactions).Error

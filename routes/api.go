@@ -9,8 +9,6 @@ import (
 func SetupRoutes() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	transactionController := controllers.SetupTransactionController()
-
 	// Register each route with its specific handler
 	mux.HandleFunc("/user/create", handlers.CreateUser) // POST
 	mux.HandleFunc("/user/login", handlers.Login)       // POST
@@ -22,12 +20,15 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/wallet", handlers.GetWallet)           // GET
 	mux.HandleFunc("/wallets", handlers.GetWallets)         // GET
 
+	//Transaction group
+	transactionController := handlers.SetupTransactionController()
+
+	mux.HandleFunc("/create-transaction", transactionController.CreateTransaction) // POST
+	mux.HandleFunc("/transactions", transactionController.ListTransactions)        // GET
+
 	mux.Handle("/swagger/", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/docs/swagger.json"), // Replace with your server URL
 	))
 
-	//Transaction group
-	mux.HandleFunc("/create-transaction", transactionController.CreateTransaction) // POST
-	mux.HandleFunc("/transactions", transactionController.ListTransactions)        // GET
 	return mux
 }
