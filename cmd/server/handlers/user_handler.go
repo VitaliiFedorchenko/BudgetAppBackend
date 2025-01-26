@@ -10,7 +10,6 @@ import (
 	"github.com/go-playground/validator/v10"
 	"log"
 	"net/http"
-	"strings"
 )
 
 var validate = validator.New()
@@ -84,15 +83,7 @@ func GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get a specific header
-	authHeader := r.Header.Get("Authorization")
-
-	// If you're specifically looking for the server_utils token from Authorization header
-	// It's typically sent as "Bearer <token>"
-	authHeader = r.Header.Get("Authorization")
-	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
-	user, _ := serverUtils.ValidateToken(tokenString)
+	user, _ := serverUtils.GetUserFromAuthToken(r)
 
 	utils.NewResponse(w).ResponseJSON(user)
 }
