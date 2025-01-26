@@ -1,6 +1,6 @@
 FROM golang:1.23.2-alpine
 
-RUN apk add --no-cache git gcc musl-dev sqlite-dev build-base
+RUN apk add --no-cache git gcc musl-dev mysql-dev build-base
 
 RUN go install github.com/air-verse/air@latest
 

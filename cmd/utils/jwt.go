@@ -1,10 +1,12 @@
-package auth
+package utils
 
 import (
-	"BudgetApp/helpers"
+	"BudgetApp/internal/configs"
 	"BudgetApp/models"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -45,7 +47,7 @@ func GenerateToken(user models.User) (string, error) {
 		return "", err
 	}
 
-	return tokenString, err
+	return tokenString, err // Return the token string
 }
 
 // ValidateToken verifies and parses the JWT token
@@ -64,11 +66,23 @@ func ValidateToken(tokenString string) (*models.User, error) {
 	if !token.Valid {
 		return nil, jwt.ErrInvalidKey
 	}
-	db, err := helpers.ConnectToSQLite()
+	db, err := configs.ConnectionToDataBase()
 
 	var user models.User
 
 	db.First(&user, "id = ?", claims.UserID)
 
 	return &user, err
+}
+
+func GetUserFromAuthToken(r *http.Request) (*models.User, error) {
+	// Get a specific header
+	authHeader := r.Header.Get("Authorization")
+
+	// If you're specifically looking for the JWT token from Authorization header
+	// It's typically sent as "Bearer <token>"
+	authHeader = r.Header.Get("Authorization")
+	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+	return ValidateToken(tokenString)
 }
