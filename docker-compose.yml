@@ -21,7 +21,7 @@ services:
     container_name: mysql
     hostname: mysql
     ports:
-      - "3306:3306"
+      - "3307:3307"
     volumes:
       - mysql_data:/var/lib/mysql
     environment:

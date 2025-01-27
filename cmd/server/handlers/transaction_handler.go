@@ -63,6 +63,11 @@ func (c *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 }
 
 func (c *TransactionHandler) ListTransactions(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 

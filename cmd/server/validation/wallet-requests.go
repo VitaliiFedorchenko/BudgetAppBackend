@@ -14,3 +14,7 @@ type UpdateWalletRequest struct {
 	Amount   *float64        `json:"amount"`
 	Currency *enums.Currency `json:"currency" validate:"omitempty"`
 }
+
+type DeleteWalletRequest struct {
+	ID uint `json:"id"`
+}
