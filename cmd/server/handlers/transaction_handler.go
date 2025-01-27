@@ -10,17 +10,17 @@ import (
 	"strconv"
 )
 
-type TransactionController struct {
+type TransactionHandler struct {
 	transactionService *services.TransactionService
 }
 
-func SetupTransactionController() *TransactionController {
+func SetupTransactionHandler() *TransactionHandler {
 	transactionService := services.NewTransactionService()
-	return NewTransactionController(transactionService)
+	return NewTransactionHandler(transactionService)
 }
 
-func NewTransactionController(transactionService *services.TransactionService) *TransactionController {
-	return &TransactionController{transactionService: transactionService}
+func NewTransactionHandler(transactionService *services.TransactionService) *TransactionHandler {
+	return &TransactionHandler{transactionService: transactionService}
 }
 
 type TransactionResponse struct {
@@ -29,7 +29,7 @@ type TransactionResponse struct {
 	Sum      float64                   `json:"sum"`
 }
 
-func (c *TransactionController) CreateTransaction(w http.ResponseWriter, r *http.Request) {
+func (c *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -62,7 +62,7 @@ func (c *TransactionController) CreateTransaction(w http.ResponseWriter, r *http
 	utils.NewResponse(w).ResponseJSON(response, http.StatusCreated)
 }
 
-func (c *TransactionController) ListTransactions(w http.ResponseWriter, r *http.Request) {
+func (c *TransactionHandler) ListTransactions(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 

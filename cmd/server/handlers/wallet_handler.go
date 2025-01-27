@@ -5,6 +5,7 @@ import (
 	serverUtils "BudgetApp/cmd/utils"
 	"BudgetApp/internal/configs"
 	"BudgetApp/internal/dto"
+	"BudgetApp/internal/services"
 	"BudgetApp/internal/utils"
 	"BudgetApp/models"
 	"encoding/json"
@@ -13,15 +14,23 @@ import (
 	"strconv"
 )
 
-func CreateWallet(w http.ResponseWriter, r *http.Request) {
+type WalletHandler struct {
+	walletService *services.WalletService
+}
+
+func SetupWalletHandler() *WalletHandler {
+	walletService := services.NewWalletService()
+	return NewWalletHandler(walletService)
+}
+
+func NewWalletHandler(walletService *services.WalletService) *WalletHandler {
+	return &WalletHandler{walletService: walletService}
+}
+
+func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
-	}
-
-	db, err := configs.ConnectionToDataBase()
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	var req validation.CreateWalletRequest
@@ -36,21 +45,11 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	var wallet models.Wallet
-
 	user, _ := serverUtils.GetUserFromAuthToken(r)
 
-	if req.Amount != nil {
-		wallet.SetAmount(*req.Amount)
-	}
-	wallet.Name = req.Name
-	wallet.UserID = user.ID
-	if req.Currency != nil {
-		wallet.Currency = *req.Currency
-	}
+	wallet, err := h.walletService.CreateWallet(req, user)
 
-	if err := db.Create(&wallet).Error; err != nil {
+	if err != nil {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
