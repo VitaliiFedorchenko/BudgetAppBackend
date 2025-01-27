@@ -23,10 +23,10 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/wallets", handlers.GetWallets)              // GET
 
 	//Transaction group
-	transactionController := handlers.SetupTransactionController()
+	transactionHandler := handlers.SetupTransactionHandler()
 
-	mux.HandleFunc("/create-transaction", transactionController.CreateTransaction) // POST
-	mux.HandleFunc("/transactions", transactionController.ListTransactions)        // GET
+	mux.HandleFunc("/create-transaction", transactionHandler.CreateTransaction) // POST
+	mux.HandleFunc("/transactions", transactionHandler.ListTransactions)        // GET
 
 	mux.Handle("/swagger/", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/docs/swagger.json"), // Replace with your server URL
