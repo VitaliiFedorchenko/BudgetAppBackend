@@ -4,7 +4,7 @@ import (
 	"BudgetApp/cmd/server/validation"
 	serverUtils "BudgetApp/cmd/utils"
 	"BudgetApp/internal/configs"
-	"BudgetApp/internal/enums"
+	"BudgetApp/internal/dto"
 	"BudgetApp/internal/utils"
 	"BudgetApp/models"
 	"encoding/json"
@@ -13,20 +13,13 @@ import (
 	"strconv"
 )
 
-type WalletResponse struct {
-	ID       uint           `json:"id"`
-	Name     string         `json:"name"`
-	Amount   float64        `json:"amount"`
-	Currency enums.Currency `json:"currency"`
-}
-
 func CreateWallet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	db, err := configs.ConnectToSQLite()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +54,7 @@ func CreateWallet(w http.ResponseWriter, r *http.Request) {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
-	response := WalletResponse{
+	response := dto.WalletResponse{
 		ID:       wallet.ID,
 		Name:     wallet.Name,
 		Amount:   wallet.GetAmount(),
@@ -76,7 +69,7 @@ func UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := configs.ConnectToSQLite()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -115,7 +108,7 @@ func UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := WalletResponse{
+	response := dto.WalletResponse{
 		ID:       wallet.ID,
 		Name:     wallet.Name,
 		Amount:   wallet.GetAmount(),
@@ -130,7 +123,7 @@ func DeleteWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := configs.ConnectToSQLite()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -152,7 +145,7 @@ func DeleteWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := WalletResponse{
+	response := dto.WalletResponse{
 		ID:       wallet.ID,
 		Name:     wallet.Name,
 		Amount:   wallet.GetAmount(),
@@ -167,7 +160,7 @@ func GetWallet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := configs.ConnectToSQLite()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -180,7 +173,7 @@ func GetWallet(w http.ResponseWriter, r *http.Request) {
 		utils.NewResponse(w).ResponseJSON("Wallet not found", http.StatusNotFound)
 	}
 
-	response := WalletResponse{
+	response := dto.WalletResponse{
 		ID:       wallet.ID,
 		Name:     wallet.Name,
 		Amount:   wallet.GetAmount(),
@@ -195,7 +188,7 @@ func GetWallets(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := configs.ConnectToSQLite()
+	db, err := configs.ConnectionToDataBase()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -214,34 +207,23 @@ func GetWallets(w http.ResponseWriter, r *http.Request) {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 	}
 
-	// Fetch paginated wallets
-	err = db.Order("created_at DESC").
-		Limit(limit).
-		Offset(offset).
-		Find(&wallets).Error
+	err = db.Order("created_at DESC").Limit(limit).Offset(offset).Find(&wallets).Error
 
 	if err != nil {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 	}
 
-	// Map wallets to WalletResponse structure
-	var walletResponses []WalletResponse
+	var walletResponses []dto.WalletResponse
 	for _, wallet := range wallets {
-		walletResponse := WalletResponse{
+		walletResponses = append(walletResponses, dto.WalletResponse{
 			ID:       wallet.ID,
 			Name:     wallet.Name,
 			Amount:   wallet.GetAmount(),
 			Currency: wallet.Currency,
-		}
-		walletResponses = append(walletResponses, walletResponse)
+		})
 	}
 
-	response := map[string]interface{}{
-		"data":  walletResponses,
-		"page":  page,
-		"limit": limit,
-		"total": totalCount,
-	}
+	response := dto.CreatePaginatedResponse(walletResponses, page, limit, totalCount)
 
 	utils.NewResponse(w).ResponseJSON(response, http.StatusOK)
 }
