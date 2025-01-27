@@ -6,19 +6,22 @@ import (
 	"BudgetApp/models"
 	"gorm.io/gorm"
 	"log"
+	"strconv"
 )
 
 type TransactionService struct {
-	db *gorm.DB
+	db            *gorm.DB
+	walletService *WalletService
 }
 
 func NewTransactionService() *TransactionService {
 	db, err := configs.ConnectionToDataBase()
+	walletService := NewWalletService()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &TransactionService{db: db}
+	return &TransactionService{db: db, walletService: walletService}
 }
 
 func (s *TransactionService) CreateTransaction(req *validation.CreateTransactionRequest) (*models.Transaction, error) {
@@ -29,6 +32,15 @@ func (s *TransactionService) CreateTransaction(req *validation.CreateTransaction
 	}
 
 	transaction.Sum = transaction.SetSum(*req.Sum)
+	wallet, err := s.walletService.GetWallet(strconv.Itoa(int(req.WalletID)))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = s.walletService.ChangeAmount(wallet.GetAmount()-transaction.GetSum(), *wallet)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := s.db.Create(transaction).Error; err != nil {
 		return nil, err

@@ -14,11 +14,13 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/user/login", handlers.Login)       // POST
 	mux.HandleFunc("/user/me", handlers.GetMe)          // GET
 
-	mux.HandleFunc("/wallet/create", handlers.CreateWallet) // POST
-	mux.HandleFunc("/wallet/update", handlers.UpdateWallet) // PATCH
-	mux.HandleFunc("/wallet/delete", handlers.DeleteWallet) // DELETE
-	mux.HandleFunc("/wallet", handlers.GetWallet)           // GET
-	mux.HandleFunc("/wallets", handlers.GetWallets)         // GET
+	walletHandler := handlers.SetupWalletHandler()
+
+	mux.HandleFunc("/wallet/create", walletHandler.CreateWallet) // POST
+	mux.HandleFunc("/wallet/update", handlers.UpdateWallet)      // PATCH
+	mux.HandleFunc("/wallet/delete", handlers.DeleteWallet)      // DELETE
+	mux.HandleFunc("/wallet", handlers.GetWallet)                // GET
+	mux.HandleFunc("/wallets", handlers.GetWallets)              // GET
 
 	//Transaction group
 	transactionController := handlers.SetupTransactionController()
