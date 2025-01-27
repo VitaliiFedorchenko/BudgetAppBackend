@@ -6,10 +6,10 @@ import (
 
 // User represents the user model
 type User struct {
-	ID        uint      `gorm:"primaryKey"`
-	Name      string    `json:"name" gorm:"not null;index"`
-	Email     string    `gorm:"not null;unique;index"`
-	Password  string    `gorm:"not null"`
+	ID        uint      `json:"id" gorm:"unique;primaryKey;autoIncrement" faker:"-"` // Auto increment
+	Name      string    `json:"name" gorm:"not null;index" faker:"name"`
+	Email     string    `gorm:"not null;unique;index" faker:"email"`
+	Password  string    `gorm:"not null" faker:"password"`
 	CreatedAt time.Time `json:"-"`
 	UpdatedAt time.Time `json:"-"`
 }
