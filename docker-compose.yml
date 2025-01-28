@@ -15,6 +15,8 @@ services:
       DB_NAME: ${DB_NAME}
     depends_on:
       - mysql
+    networks:
+        - backend
 
   mysql:
     image: mysql:8.0
@@ -32,6 +34,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    networks:
+        - backend
 
 volumes:
   mysql_data:
+networks:
+  backend:
+    driver: bridge
