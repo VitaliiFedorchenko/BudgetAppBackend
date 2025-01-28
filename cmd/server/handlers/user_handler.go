@@ -6,11 +6,8 @@ import (
 	"BudgetApp/internal/services"
 	"BudgetApp/internal/utils"
 	"encoding/json"
-	"github.com/go-playground/validator/v10"
 	"net/http"
 )
-
-var validate = validator.New()
 
 type UserHandler struct {
 	userService *services.UserService
