@@ -17,7 +17,7 @@ func SetupRoutes() *http.ServeMux {
 	walletHandler := handlers.SetupWalletHandler()
 
 	mux.HandleFunc("/wallet/create", walletHandler.CreateWallet) // POST
-	mux.HandleFunc("/wallet/update", walletHandler.UpdateWallet) // PATCH
+	mux.HandleFunc("/wallet/update", walletHandler.UpdateWallet) // PUT
 	mux.HandleFunc("/wallet/delete", walletHandler.DeleteWallet) // DELETE
 	mux.HandleFunc("/wallet", walletHandler.GetWallet)           // GET
 	mux.HandleFunc("/wallets", walletHandler.GetWallets)         // GET

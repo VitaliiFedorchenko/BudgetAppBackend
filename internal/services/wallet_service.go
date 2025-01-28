@@ -7,6 +7,7 @@ import (
 	"BudgetApp/models"
 	"gorm.io/gorm"
 	"log"
+	"strconv"
 )
 
 type WalletService struct {
@@ -105,19 +106,21 @@ func (s *WalletService) DeleteUserWallet(ID string, user *models.User) (*models.
 	return &wallet, nil
 }
 
-func (s *WalletService) ListWallets(page int, limit int) (*dto.PaginatedResponse, error) {
+func (s *WalletService) ListUserWallets(user *models.User, page int, limit int) (*dto.PaginatedResponse, error) {
 	var wallets []models.Wallet
 	var totalCount int64
 
+	var userId = strconv.Itoa(int(user.ID))
+
 	// Count total transactions
-	if err := s.db.Model(&models.Wallet{}).Count(&totalCount).Error; err != nil {
+	if err := s.db.Where("user_id = ?", userId).Model(&models.Wallet{}).Count(&totalCount).Error; err != nil {
 		return nil, err
 	}
 
 	// Calculate offset
 	offset := (page - 1) * limit
 
-	err := s.db.Order("created_at DESC").Limit(limit).Offset(offset).Find(&wallets).Error
+	err := s.db.Where("user_id = ?", userId).Order("created_at DESC").Limit(limit).Offset(offset).Find(&wallets).Error
 	if err != nil {
 		return nil, err
 	}

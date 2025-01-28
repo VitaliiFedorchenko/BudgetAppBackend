@@ -60,7 +60,7 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPatch {
+	if r.Method != http.MethodPut {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -163,7 +163,9 @@ func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 
-	response, err := h.walletService.ListWallets(page, limit)
+	user, _ := serverUtils.GetUserFromAuthToken(r)
+
+	response, err := h.walletService.ListUserWallets(user, page, limit)
 	if err != nil {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
