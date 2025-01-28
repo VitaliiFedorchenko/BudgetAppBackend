@@ -8,27 +8,38 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: "mysql://root:${MYSQL_ROOT_PASSWORD}@mysql/${MYSQL_DATABASE}"
+      DATABASE_URL: "mysql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}/${DB_NAME}"
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
     depends_on:
-      - mysql
+       mysql:
+         condition: service_healthy
+    networks:
+        - backend
 
   mysql:
     image: mysql:8.0
     container_name: mysql
     hostname: mysql
     ports:
-      - "3307:3306"
+      - "3307:3307"
     volumes:
       - mysql_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
-    env_file:
-      - .env
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+        - backend
 
 volumes:
   mysql_data:
+networks:
+  backend:
+    driver: bridge
