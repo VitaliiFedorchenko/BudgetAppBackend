@@ -10,10 +10,19 @@ func SetupRoutes() *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// Register each route with its specific handler
-	mux.HandleFunc("/user/create", handlers.CreateUser) // POST
-	mux.HandleFunc("/user/login", handlers.Login)       // POST
-	mux.HandleFunc("/user/me", handlers.GetMe)          // GET
 
+	//Auth group
+	authHandler := handlers.SetupAuthHandler()
+
+	mux.HandleFunc("/user/login", authHandler.Login) // POST
+
+	//User group
+	userHandler := handlers.SetupUserHandler()
+
+	mux.HandleFunc("/user/create", userHandler.CreateUser) // POST
+	mux.HandleFunc("/user/me", userHandler.GetMe)          // GET
+
+	//Wallet group
 	walletHandler := handlers.SetupWalletHandler()
 
 	mux.HandleFunc("/wallet/create", walletHandler.CreateWallet) // POST
