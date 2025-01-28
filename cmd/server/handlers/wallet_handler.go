@@ -3,13 +3,10 @@ package handlers
 import (
 	"BudgetApp/cmd/server/validation"
 	serverUtils "BudgetApp/cmd/utils"
-	"BudgetApp/internal/configs"
 	"BudgetApp/internal/dto"
 	"BudgetApp/internal/services"
 	"BudgetApp/internal/utils"
-	"BudgetApp/models"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -62,15 +59,10 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	utils.NewResponse(w).ResponseJSON(response)
 }
 
-func UpdateWallet(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPatch {
+func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
-	}
-
-	db, err := configs.ConnectionToDataBase()
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	var req validation.UpdateWalletRequest
@@ -85,24 +77,11 @@ func UpdateWallet(w http.ResponseWriter, r *http.Request) {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	user, _ := serverUtils.GetUserFromAuthToken(r)
 
-	var wallet models.Wallet
-	if err := db.Where("id = ?", req.ID).Where("user_id = ?", user.ID).First(&wallet).Error; err != nil {
-		utils.NewResponse(w).ResponseJSON("Wallet not found", http.StatusNotFound)
-	}
+	wallet, err := h.walletService.UpdateWallet(req, user)
 
-	if req.Amount != nil {
-		wallet.SetAmount(*req.Amount)
-	}
-	if req.Name != nil {
-		wallet.Name = *req.Name
-	}
-	if req.Currency != nil {
-		wallet.Currency = *req.Currency
-	}
-	if err := db.Updates(&wallet).Error; err != nil {
+	if err != nil {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -116,30 +95,28 @@ func UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	utils.NewResponse(w).ResponseJSON(response)
 }
 
-func DeleteWallet(w http.ResponseWriter, r *http.Request) {
+func (h *WalletHandler) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodDelete {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	db, err := configs.ConnectionToDataBase()
-	if err != nil {
-		log.Fatal(err)
+	var req validation.DeleteWalletRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		// handle error
+		return
 	}
-
-	var wallet models.Wallet
-	if err := json.NewDecoder(r.Body).Decode(&wallet); err != nil {
+	// Validate the request body
+	if err := validate.Struct(req); err != nil {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	user, _ := serverUtils.GetUserFromAuthToken(r)
 
-	if err := db.Where("id = ?", wallet.ID).Where("user_id = ?", user.ID).First(&wallet).Error; err != nil {
-		utils.NewResponse(w).ResponseJSON("Wallet not found", http.StatusNotFound)
-	}
+	wallet, err := h.walletService.DeleteUserWallet(strconv.Itoa(int(req.ID)), user)
 
-	if err := db.Delete(&wallet).Error; err != nil {
+	if err != nil {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -153,23 +130,19 @@ func DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	utils.NewResponse(w).ResponseJSON(response)
 }
 
-func GetWallet(w http.ResponseWriter, r *http.Request) {
+func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	db, err := configs.ConnectionToDataBase()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	user, _ := serverUtils.GetUserFromAuthToken(r)
 
-	var wallet models.Wallet
-	if err := db.Where("id = ?", r.URL.Query().Get("id")).Where("user_id = ?", user.ID).First(&wallet).
-		Error; err != nil {
-		utils.NewResponse(w).ResponseJSON("Wallet not found", http.StatusNotFound)
+	wallet, err := h.walletService.GetUserWallet(r.URL.Query().Get("id"), user)
+
+	if err != nil {
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	response := dto.WalletResponse{
@@ -181,48 +154,22 @@ func GetWallet(w http.ResponseWriter, r *http.Request) {
 	utils.NewResponse(w).ResponseJSON(response)
 }
 
-func GetWallets(w http.ResponseWriter, r *http.Request) {
+func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
 		return
-	}
-
-	db, err := configs.ConnectionToDataBase()
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 
-	var wallets []models.Wallet
-	var totalCount int64
+	user, _ := serverUtils.GetUserFromAuthToken(r)
 
-	// Calculate offset
-	offset := (page - 1) * limit
-
-	// Count total transactions
-	if err := db.Model(&models.Wallet{}).Count(&totalCount).Error; err != nil {
-		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
-	}
-
-	err = db.Order("created_at DESC").Limit(limit).Offset(offset).Find(&wallets).Error
-
+	response, err := h.walletService.ListUserWallets(user, page, limit)
 	if err != nil {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
+		return
 	}
-
-	var walletResponses []dto.WalletResponse
-	for _, wallet := range wallets {
-		walletResponses = append(walletResponses, dto.WalletResponse{
-			ID:       wallet.ID,
-			Name:     wallet.Name,
-			Amount:   wallet.GetAmount(),
-			Currency: wallet.Currency,
-		})
-	}
-
-	response := dto.CreatePaginatedResponse(walletResponses, page, limit, totalCount)
 
 	utils.NewResponse(w).ResponseJSON(response, http.StatusOK)
 }
