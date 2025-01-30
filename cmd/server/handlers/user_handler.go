@@ -63,7 +63,13 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	authToken, err := serverUtils.GenerateToken(user)
+
+	if err != nil {
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	utils.NewResponse(w).ResponseJSON(map[string]any{"user": user, "token": authToken})
 }
