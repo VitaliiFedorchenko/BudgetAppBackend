@@ -17,6 +17,9 @@ jobs:
         with:
           go-version: 1.23
 
+      - name: Sync vendor directory
+        run: go mod vendor
+
       - name: Verify dependencies
         run: go mod verify
 
