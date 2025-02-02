@@ -3,6 +3,7 @@ package middlewares
 import (
 	serverUtils "BudgetApp/cmd/utils"
 	"BudgetApp/internal/utils"
+	"BudgetApp/models"
 	"context"
 	"net/http"
 	"strings"
@@ -46,4 +47,10 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 		// Call the next handler with the new context
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
+}
+
+// GetUserFromContext retrieves the user from the request context
+func GetUserFromContext(r *http.Request) (*models.User, bool) {
+	user, ok := r.Context().Value(UserContextKey).(*models.User)
+	return user, ok
 }
