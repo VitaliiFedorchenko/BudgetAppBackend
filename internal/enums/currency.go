@@ -21,6 +21,6 @@ func (c Currency) Value() (driver.Value, error) {
 	case UAH, USD, EUR, GBP, JPY, CZK:
 		return string(c), nil
 	default:
-		return nil, errors.New("This currency is not currently supported by the system")
+		return nil, errors.New("this currency is not currently supported by the system")
 	}
 }

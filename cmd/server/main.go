@@ -3,6 +3,7 @@ package main
 import (
 	"BudgetApp/database"
 	"BudgetApp/routes"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -26,7 +27,7 @@ func main() {
 
 	mux := routes.SetupRoutes()
 
-	log.Println("Server starting on port 8080...")
+	fmt.Println("Server starting on port 8080... ")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
 		log.Fatal(err)
 	}

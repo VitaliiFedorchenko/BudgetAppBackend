@@ -81,7 +81,6 @@ func GetUserFromAuthToken(r *http.Request) (*models.User, error) {
 
 	// If you're specifically looking for the JWT token from Authorization header
 	// It's typically sent as "Bearer <token>"
-	authHeader = r.Header.Get("Authorization")
 	tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
 	return ValidateToken(tokenString)
