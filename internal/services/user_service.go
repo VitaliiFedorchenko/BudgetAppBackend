@@ -44,7 +44,7 @@ func (s *UserService) CreateUser(req validation.CreateUserRequest) (*models.User
 func (s *UserService) GetUserViaEmail(email string) (*models.User, error) {
 	var user models.User
 	if err := s.db.Where("email = ?", email).First(&user).Error; err != nil {
-		return nil, errors.New("There is no user with such email")
+		return nil, errors.New("there is no user with such email")
 	}
 
 	return &user, nil

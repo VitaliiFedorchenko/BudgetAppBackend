@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+// ContextKey is a custom type for context keys to avoid collisions
+type ContextKey string
+
+// UserContextKey is the key used to store the user in the context
+const UserContextKey ContextKey = "user"
+
 // AuthMiddleware verifies the JWT token and adds the user to the request context
 func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -33,9 +39,9 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Create a new context with the user
+		// Create a new context with the user using the custom key type
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "user", user)
+		ctx = context.WithValue(ctx, UserContextKey, user)
 
 		// Call the next handler with the new context
 		next.ServeHTTP(w, r.WithContext(ctx))
