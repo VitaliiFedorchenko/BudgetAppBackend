@@ -31,7 +31,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
       MYSQL_TCP_PORT: 3307
-    command: --port=3307
+    command: --port=3307 --log-error-verbosity=1 --disable-log-bin
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3307" ]
       interval: 10s
