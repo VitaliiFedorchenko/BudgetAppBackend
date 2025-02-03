@@ -3,6 +3,7 @@ package routes
 import (
 	"BudgetApp/cmd/middlewares"
 	"BudgetApp/cmd/server/handlers"
+	"BudgetApp/models"
 	"github.com/swaggo/http-swagger"
 	"net/http"
 )
@@ -26,11 +27,11 @@ func SetupRoutes() *http.ServeMux {
 	//Wallet group
 	walletHandler := handlers.SetupWalletHandler()
 
-	mux.HandleFunc("/wallet/create", middlewares.AuthMiddleware(walletHandler.CreateWallet)) // POST
-	mux.HandleFunc("/wallet/update", middlewares.AuthMiddleware(walletHandler.UpdateWallet)) // PUT
-	mux.HandleFunc("/wallet/delete", middlewares.AuthMiddleware(walletHandler.DeleteWallet)) // DELETE
-	mux.HandleFunc("/wallet", middlewares.AuthMiddleware(walletHandler.GetWallet))           // GET
-	mux.HandleFunc("/wallets", middlewares.AuthMiddleware(walletHandler.GetWallets))         // GET
+	mux.HandleFunc("/wallet/create", middlewares.AuthMiddleware(walletHandler.CreateWallet))        // POST
+	mux.HandleFunc("/wallet/update", middlewares.AuthMiddleware(walletHandler.UpdateWallet))        // PUT
+	mux.HandleFunc("/wallet/delete", middlewares.AuthMiddleware(walletHandler.DeleteWallet))        // DELETE
+	mux.HandleFunc("/wallet", middlewares.RoleMiddleware(models.RoleUser)(walletHandler.GetWallet)) // GET
+	mux.HandleFunc("/wallets", middlewares.AuthMiddleware(walletHandler.GetWallets))                // GET
 
 	//Transaction group
 	transactionHandler := handlers.SetupTransactionHandler()
