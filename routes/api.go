@@ -24,6 +24,9 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/user/create", userHandler.CreateUser)                    // POST
 	mux.HandleFunc("/user/me", middlewares.AuthMiddleware(userHandler.GetMe)) // GET
 
+	//Stats group
+	mux.HandleFunc("/user/transaction-stats", middlewares.AuthMiddleware(userHandler.GetTransactionStatsByUser)) //GET
+
 	//Wallet group
 	walletHandler := handlers.SetupWalletHandler()
 

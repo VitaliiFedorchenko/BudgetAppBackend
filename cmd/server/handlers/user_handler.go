@@ -90,3 +90,33 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	utils.NewResponse(w).ResponseJSON(user)
 }
+
+// GetTransactionStatsByUser godoc
+// @Summary Get stats of user
+// @Description Get detailed stats of the user's transactions
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} stats.TransactionStats
+// @Failure 400 {object} map[string]string
+// @Router /me [get]
+func (h *UserHandler) GetTransactionStatsByUser(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.NewResponse(w).ResponseJSON("Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	user, err := serverUtils.GetUserFromAuthToken(r)
+	if err != nil {
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	statistics, err := h.userService.GetTransactionStatsByUser(user.ID)
+	if err != nil {
+		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.NewResponse(w).ResponseJSON(statistics)
+}
