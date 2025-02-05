@@ -7,6 +7,7 @@ import (
 	"BudgetApp/internal/utils"
 	"BudgetApp/models"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"log"
 	"math"
@@ -53,14 +54,14 @@ func (s *UserService) GetUserViaEmail(email string) (*models.User, error) {
 }
 
 func (s *UserService) GetTransactionStatsByUser(userID uint) (*stats.TransactionStats, error) {
-	// 1. Ініціалізуємо структуру
 	statsDTO := &stats.TransactionStats{
 		Categories:          make(map[string]float64),
 		CategoryPercentages: make(map[string]float64),
 		CurrencyStats:       make(map[string]stats.CurrencyStats),
 	}
 
-	var result []struct {
+	// Define the result type locally
+	type queryResult struct {
 		Category string
 		Total    int64
 		Currency string
@@ -70,44 +71,40 @@ func (s *UserService) GetTransactionStatsByUser(userID uint) (*stats.Transaction
 		MinSum   int64
 	}
 
-	// 2. Отримуємо дані з бази
-	err := s.db.Raw(`
-        SELECT 
-            t.category,
-            SUM(t.sum) as total,
-            w.currency,
+	var results []queryResult
+	err := s.db.Model(&models.Transaction{}).
+		Select(`
+            transactions.category,
+            SUM(transactions.sum) as total,
+            wallets.currency,
             COUNT(*) as count,
-            AVG(t.sum) as avg_sum,
-            MAX(t.sum) as max_sum,
-            MIN(t.sum) as min_sum
-        FROM transactions t
-        JOIN wallets w ON w.id = t.wallet_id
-        WHERE w.user_id = ? AND t.deleted_at IS NULL
-        GROUP BY t.category, w.currency
-    `, userID).Scan(&result).Error
+            AVG(transactions.sum) as avg_sum,
+            MAX(transactions.sum) as max_sum,
+            MIN(transactions.sum) as min_sum
+        `).
+		Joins("JOIN wallets ON wallets.id = transactions.wallet_id").
+		Where("wallets.user_id = ?", userID).
+		Where("transactions.deleted_at IS NULL").
+		Group("transactions.category, wallets.currency").
+		Scan(&results).Error
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to fetch transaction stats: %w", err)
 	}
 
-	if len(result) == 0 {
+	if len(results) == 0 {
 		return statsDTO, nil
 	}
 
-	// 3. Обчислюємо загальні витрати по категоріях та валютах
-	categoryTotals := make(map[string]float64) // Загальні витрати по категоріях
-	totalSpent := 0.0                          // Загальні витрати користувача
+	categoryTotals := make(map[string]float64)
+	totalSpent := 0.0
 
-	for _, row := range result {
+	for _, row := range results {
 		amount := round(float64(row.Total) / 100)
 		categoryTotals[row.Category] += amount
 		totalSpent += amount
 
-		// Заповнюємо статистику за валютою
-		currStats, exists := statsDTO.CurrencyStats[row.Currency]
-		if !exists {
-			currStats = stats.CurrencyStats{}
-		}
+		currStats := statsDTO.CurrencyStats[row.Currency]
 		currStats.TotalSpent = round(currStats.TotalSpent + amount)
 		currStats.TransactionCount += row.Count
 		currStats.AverageTransaction = round(float64(row.AvgSum) / 100)
@@ -117,16 +114,11 @@ func (s *UserService) GetTransactionStatsByUser(userID uint) (*stats.Transaction
 		statsDTO.CurrencyStats[row.Currency] = currStats
 	}
 
-	// 4. Записуємо загальні витрати по категоріях
 	statsDTO.TotalSpent = round(totalSpent)
 
 	for category, amount := range categoryTotals {
 		statsDTO.Categories[category] = round(amount)
-	}
-
-	// 5. Обчислюємо відсоткове співвідношення
-	if totalSpent > 0 {
-		for category, amount := range categoryTotals {
+		if totalSpent > 0 {
 			statsDTO.CategoryPercentages[category] = round((amount / totalSpent) * 100)
 		}
 	}
