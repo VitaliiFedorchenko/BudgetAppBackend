@@ -7,7 +7,6 @@ import (
 	"BudgetApp/internal/utils"
 	"BudgetApp/models"
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"log"
 	"math"
@@ -60,7 +59,6 @@ func (s *UserService) GetTransactionStatsByUser(userID uint) (*stats.Transaction
 		CurrencyStats:       make(map[string]stats.CurrencyStats),
 	}
 
-	// Define the result type locally
 	type queryResult struct {
 		Category string
 		Total    int64
@@ -89,7 +87,7 @@ func (s *UserService) GetTransactionStatsByUser(userID uint) (*stats.Transaction
 		Scan(&results).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch transaction stats: %w", err)
+		return nil, err
 	}
 
 	if len(results) == 0 {
