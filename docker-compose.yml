@@ -14,7 +14,8 @@ services:
       DB_HOST: ${DB_HOST}
       DB_NAME: ${DB_NAME}
     depends_on:
-      - mysql
+       mysql:
+         condition: service_healthy
     networks:
         - backend
 
@@ -23,16 +24,18 @@ services:
     container_name: mysql
     hostname: mysql
     ports:
-      - "3307:3307"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
+#      MYSQL_TCP_PORT: 3307
+#    command: --port=3307
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3307" ]
       interval: 10s
-      timeout: 5s
+      timeout: 3s
       retries: 3
     networks:
         - backend
