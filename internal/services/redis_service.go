@@ -22,8 +22,8 @@ func NewRedisService() *RedisService {
 }
 
 // PingRedis checks the Redis connection
-func (s *RedisService) PingRedis(rdb *redis.Client) error {
-	pong, err := rdb.Ping(s.ctx).Result()
+func (s *RedisService) PingRedis() error {
+	pong, err := s.client.Ping(s.ctx).Result()
 	if err != nil {
 		return err
 	}
@@ -32,11 +32,11 @@ func (s *RedisService) PingRedis(rdb *redis.Client) error {
 }
 
 // SetKey sets a key-value pair in Redis
-func (s *RedisService) SetKey(rdb *redis.Client, key string, value string) error {
-	return rdb.Set(s.ctx, key, value, 0).Err()
+func (s *RedisService) SetKey(key string, value string) error {
+	return s.client.Set(s.ctx, key, value, 0).Err()
 }
 
 // GetKey retrieves a value by key from Redis
-func (s *RedisService) GetKey(rdb *redis.Client, key string) (string, error) {
-	return rdb.Get(s.ctx, key).Result()
+func (s *RedisService) GetKey(key string) (string, error) {
+	return s.client.Get(s.ctx, key).Result()
 }
