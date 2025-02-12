@@ -36,6 +36,13 @@ func SetupRoutes() *http.ServeMux {
 	mux.HandleFunc("/wallet", middlewares.RoleMiddleware(models.RoleUser)(walletHandler.GetWallet)) // GET
 	mux.HandleFunc("/wallets", middlewares.AuthMiddleware(walletHandler.GetWallets))                // GET
 
+	categoryHandler := handlers.SetupCategoryHandler()
+
+	mux.HandleFunc("/category/create", categoryHandler.CreateCategory) // POST
+	mux.HandleFunc("/category/delete", categoryHandler.DeleteCategory) // DELETE
+	mux.HandleFunc("/category/update", categoryHandler.UpdateCategory) // PUT
+	mux.HandleFunc("/categories", categoryHandler.GetAllCategories)    // GET
+
 	//Transaction group
 	transactionHandler := handlers.SetupTransactionHandler()
 

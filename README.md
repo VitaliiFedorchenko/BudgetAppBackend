@@ -5,6 +5,7 @@
 * [golang-jwt](https://github.com/golang-jwt/jwt) - Library for working with jwt
 * [go-playground/validator](https://github.com/go-playground/validator) - Library for validation
 * [go-faker](https://github.com/go-faker/faker) - Library for generating fake data
+* [slug generator](https://github.com/gosimple/slug) - Library for generating slug
 
 ## Start application
 
