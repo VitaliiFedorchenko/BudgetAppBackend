@@ -11,7 +11,7 @@ func AutoMigrate() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	if err := db.AutoMigrate(&models.User{}); err != nil {
 		log.Fatal(err)
 	}
@@ -19,6 +19,10 @@ func AutoMigrate() {
 		log.Fatal(err)
 	}
 	err = db.AutoMigrate(&models.Transaction{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = db.AutoMigrate(&models.Category{})
 	if err != nil {
 		log.Fatal(err)
 	}
