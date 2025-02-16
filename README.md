@@ -1,10 +1,10 @@
 ## Built with
 
 * [gorm](https://gorm.io/docs/index.html) - ORM library for Golang
-* [godotenv](https://github.com/joho/godotenv) - load environment variables from .env
 * [golang-jwt](https://github.com/golang-jwt/jwt) - Library for working with jwt
 * [go-playground/validator](https://github.com/go-playground/validator) - Library for validation
 * [go-faker](https://github.com/go-faker/faker) - Library for generating fake data
+* [testify](https://github.com/stretchr/testify) - Go code (golang) set of packages that provide many tools for testifying that your code will behave as you intend
 
 ## Start application
 
