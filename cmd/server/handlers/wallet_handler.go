@@ -33,12 +33,14 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	var req validation.CreateWalletRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Validate the request body
 	if err := validate.Struct(req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -47,6 +49,7 @@ func (h *WalletHandler) CreateWallet(w http.ResponseWriter, r *http.Request) {
 	wallet, err := h.walletService.CreateWallet(req, user)
 
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -68,12 +71,14 @@ func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	var req validation.UpdateWalletRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPut)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Validate the request body
 	if err := validate.Struct(req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPut)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -82,6 +87,7 @@ func (h *WalletHandler) UpdateWallet(w http.ResponseWriter, r *http.Request) {
 	wallet, err := h.walletService.UpdateWallet(req, user)
 
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPut)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -103,11 +109,13 @@ func (h *WalletHandler) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 
 	var req validation.DeleteWalletRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodDelete)
 		// handle error
 		return
 	}
 	// Validate the request body
 	if err := validate.Struct(req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodDelete)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -117,6 +125,7 @@ func (h *WalletHandler) DeleteWallet(w http.ResponseWriter, r *http.Request) {
 	wallet, err := h.walletService.DeleteUserWallet(strconv.Itoa(int(req.ID)), user)
 
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodDelete)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -141,6 +150,7 @@ func (h *WalletHandler) GetWallet(w http.ResponseWriter, r *http.Request) {
 	wallet, err := h.walletService.GetUserWallet(r.URL.Query().Get("id"), user)
 
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodGet)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -167,6 +177,7 @@ func (h *WalletHandler) GetWallets(w http.ResponseWriter, r *http.Request) {
 
 	response, err := h.walletService.ListUserWallets(user, page, limit)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodGet)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
