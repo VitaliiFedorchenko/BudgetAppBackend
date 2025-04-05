@@ -32,8 +32,11 @@ func LogError(err error, route, method string) {
 		"endpoint":    route,
 		"http_method": method,
 	}
-	logger, _ := NewESLogger()
-
+	logger, loggerErr := NewESLogger()
+	if loggerErr != nil {
+		log.Printf("Failed to initialize ESLogger: %v", loggerErr)
+		return
+	}
 	if logErr := logger.LogError(
 		context.Background(),
 		err,
