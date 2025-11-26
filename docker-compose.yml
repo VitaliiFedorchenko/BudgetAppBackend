@@ -15,11 +15,15 @@ services:
       DB_NAME: ${DB_NAME}
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: 6379
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: 9200
     depends_on:
       mysql:
         condition: service_healthy
       redis:
         condition: service_started
+      elasticsearch:
+        condition: service_healthy
     networks:
       - backend
 
@@ -34,8 +38,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
-    #      MYSQL_TCP_PORT: 3307
-    #    command: --port=3307
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-P", "3307" ]
       interval: 10s
@@ -56,9 +58,35 @@ services:
     networks:
       - backend
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.1
+    container_name: elasticsearch
+    hostname: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    ports:
+      - "${ELASTICSEARCH_PORT}:${ELASTICSEARCH_PORT}"
+      - "${ELASTICSEARCH_TRANSPORT_PORT}:${ELASTICSEARCH_TRANSPORT_PORT}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:${ELASTICSEARCH_PORT} >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend
+
 volumes:
   mysql_data:
   redis_data:
+  elasticsearch_data:
 
 networks:
   backend:

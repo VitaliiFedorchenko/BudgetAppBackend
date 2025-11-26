@@ -42,24 +42,28 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req validation.CreateUserRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Validate the request body
 	if err := validate.Struct(req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	user, err := h.userService.CreateUser(req)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	authToken, err := serverUtils.GenerateToken(*user)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -84,6 +88,7 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 
 	user, err := serverUtils.GetUserFromAuthToken(r)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodGet)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -108,12 +113,14 @@ func (h *UserHandler) GetTransactionStatsByUser(w http.ResponseWriter, r *http.R
 
 	user, err := serverUtils.GetUserFromAuthToken(r)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodGet)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	statistics, err := h.userService.GetTransactionStatsByUser(user.ID)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodGet)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}

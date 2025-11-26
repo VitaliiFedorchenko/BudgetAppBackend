@@ -37,18 +37,21 @@ func (c *TransactionHandler) CreateTransaction(w http.ResponseWriter, r *http.Re
 
 	var req validation.CreateTransactionRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Validate the request body
 	if err := validate.Struct(req); err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	transaction, err := c.transactionService.CreateTransaction(&req)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodPost)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -73,6 +76,7 @@ func (c *TransactionHandler) ListTransactions(w http.ResponseWriter, r *http.Req
 
 	response, err := c.transactionService.ListTransactions(page, limit)
 	if err != nil {
+		utils.LogError(err, r.URL.Path, http.MethodGet)
 		utils.NewResponse(w).ResponseJSON(err.Error(), http.StatusInternalServerError)
 		return
 	}
