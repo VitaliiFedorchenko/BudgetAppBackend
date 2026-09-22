@@ -5,7 +5,7 @@
 * [golang-jwt](https://github.com/golang-jwt/jwt) - Library for working with jwt
 * [go-playground/validator](https://github.com/go-playground/validator) - Library for validation
 * [go-faker](https://github.com/go-faker/faker) - Library for generating fake data
-
+* [go-redis](https://github.com/redis/go-redis) - Client for working with redis
 ## Start application
 
 1. Start the application using Docker Compose:
